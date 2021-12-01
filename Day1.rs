@@ -3,7 +3,8 @@ use std::io::{BufRead,BufReader};
 
 fn main() {
     let data = process_input("Day1Input.txt");
-    let hmap = process_data(data);
+    let mini = shrink_data(data);
+    let hmap = process_data(mini);
     let result = process_hmap(hmap);
     println!("{}", result);
 }
@@ -24,6 +25,17 @@ fn process_data(data: Vec<i32>) -> Vec<bool> {
     for (index,value) in data.iter().enumerate() {
         if index == 0 {continue}
         ret.push(value > &data[index-1]);
+    }
+
+    return ret;
+}
+
+fn shrink_data(data: Vec<i32>) -> Vec<i32> {
+    let mut ret: Vec<i32> = Vec::new();
+    
+    for (index,value) in data.iter().enumerate() {
+        if index == 0 || index == 1 {continue}
+        ret.push(value + &data[index-1] + &data[index-2]);
     }
 
     return ret;
