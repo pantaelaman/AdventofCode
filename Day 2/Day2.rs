@@ -15,11 +15,12 @@ struct Command {
 struct Position {
     depth: i32,
     distance: i32,
+    aim: i32,
 }
 
 fn main() {
     let commands = process_input("Day2Input.txt");
-    let mut position: Position = Position{depth: 0, distance: 0};
+    let mut position: Position = Position{depth: 0, distance: 0, aim: 0};
     for (index, command) in commands.iter().enumerate() {
         run_command(command, &mut position);
     }
@@ -27,10 +28,13 @@ fn main() {
 }
 
 fn run_command(command: &Command, position: &mut Position) {
-    match (*command).direction {
-        Direction::FWD => position.distance += (*command).power,
-        Direction::ASC => position.depth -= (*command).power,
-        Direction::DSC => position.depth += (*command).power,
+    match command.direction {
+        Direction::FWD => {
+            position.distance += command.power;
+            position.depth += command.power * position.aim;
+        },
+        Direction::ASC => position.aim -= command.power,
+        Direction::DSC => position.aim += command.power,
     }
 }
 
