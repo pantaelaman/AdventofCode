@@ -35,20 +35,23 @@ impl FishController {
 }
 
 fn main() {
-    let mut fishes = process_input("Day6Input.txt");
+    let fishes = process_input("Day6Input.txt");
     println!("Initial fishes: {:#?}", fishes);
+    let mut controllers = build_fish_controllers(fishes);
     for day in 0..256 {
-        let mut buffer: Vec<LanternFish> = Vec::new();
-        for (index,fish) in fishes.iter_mut().enumerate() {
-            match fish.update() {
-                Some(baby) => buffer.push(baby),
-                None => (),
+        let mut new = build_fish_controllers(Vec::new());
+        for (timer,controller) in controllers.iter_mut().enumerate() {
+            if timer == 0 {
+                new[8].count += controller.count;
+                new[6].count += controller.count;
+            } else {
+                new[timer-1].count += controller.count;
             }
         }
-        fishes.append(&mut buffer);
-        println!("Completed day {}", day);
+        controllers = new;
+        println!("Finished day {}", day);
     }
-    println!("Fishes remaining: {}", fishes.len());
+    println!("Final fishes: {}", calculate_final(controllers));
 }
 
 fn process_input(file: &str) -> Vec<LanternFish> {
@@ -68,6 +71,31 @@ fn process_input(file: &str) -> Vec<LanternFish> {
             fishes.push(LanternFish::new(*timer));
         }
     }
-
     return fishes;
+}
+
+fn build_fish_controllers(fishes: Vec<LanternFish>) -> [FishController; 9] {
+    let mut controllers: [FishController; 9] = [
+        FishController::new(0),
+        FishController::new(1),
+        FishController::new(2),
+        FishController::new(3),
+        FishController::new(4),
+        FishController::new(5),
+        FishController::new(6),
+        FishController::new(7),
+        FishController::new(8),
+    ];
+    for (index,fish) in fishes.iter().enumerate() {
+        controllers[fish.timer as usize].count += 1;
+    }
+    return controllers;
+}
+
+fn calculate_final(controllers: [FishController; 9]) -> i64 {
+    let mut total: i64 = 0;
+    for controller in controllers {
+        total += controller.count;
+    }
+    return total;
 }
