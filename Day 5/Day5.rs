@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::io::{self, BufRead, BufReader};
 
-#[derive (Copy, Clone, Debug, Eq)]
+#[derive (Copy, Clone, Debug)]
 struct Coordinate {
     x: i32,
     y: i32,
@@ -10,6 +10,12 @@ struct Coordinate {
 impl Coordinate {
     pub fn new(x: i32, y: i32) -> Coordinate {
         Coordinate{x, y}
+    }
+}
+
+impl std::cmp::PartialEq for Coordinate {
+    fn eq(&self, other: &Self) -> bool {
+        self.x == other.x && self.y == other.y
     }
 }
 
@@ -23,34 +29,80 @@ struct Vent {
 impl Vent {
     pub fn new(low: Coordinate, high: Coordinate) -> Vent {
         let mut points: Vec<Coordinate> = Vec::new();
-        let x_top: i32;
-        let y_top: i32;
-        for x in 0..((high.x-low.y).abs()+1) {
-            for y in 0..((high.y-low.y).abs()+1) {
-                points.push(Coordinate::new(low.x+x, low.y+y));
+        let x_sub: bool;
+        let y_sub: bool;
+        if high.x > low.x {x_sub = false} else {x_sub = true}
+        if high.y > low.y {y_sub = false} else {y_sub = true}
+        if (low.x-high.x).abs() == (low.y-high.y).abs() {
+            for x in 0..((high.x-low.x).abs()+1) {
+                for y in 0..((high.y-low.y).abs()+1) {
+                    if x != y {continue}
+                    if x_sub {
+                        if y_sub {
+                            points.push(Coordinate::new(low.x-x, low.y-y));
+                        } else {
+                            points.push(Coordinate::new(low.x-x, low.y+y));
+                        }
+                    } else {
+                        if y_sub {
+                            points.push(Coordinate::new(low.x+x, low.y-y));
+                        } else {
+                            points.push(Coordinate::new(low.x+x, low.y+y));
+                        }
+                    }
+                }
+            }
+        } else {
+            for x in 0..((high.x-low.x).abs()+1) {
+                for y in 0..((high.y-low.y).abs()+1) {
+                    if x_sub {
+                        if y_sub {
+                            points.push(Coordinate::new(low.x-x, low.y-y));
+                        } else {
+                            points.push(Coordinate::new(low.x-x, low.y+y));
+                        }
+                    } else {
+                        if y_sub {
+                            points.push(Coordinate::new(low.x+x, low.y-y));
+                        } else {
+                            points.push(Coordinate::new(low.x+x, low.y+y));
+                        }
+                    }
+                }
             }
         }
         Vent{low, high, points}
     }
 }
 
+impl std::cmp::PartialEq for Vent {
+    fn eq(&self, other: &Self) -> bool {
+        self.low == other.low && self.high == other.high
+    }
+}
+
 fn main () {
     let vents = process_input("Day5Input.txt");
-    let active_vents = vents.clone();
-    println!("Vent example: {:#?}", vents.last().unwrap());
+
     println!("{} valid vents found", vents.len());
-    let overlaps: Vec<Coordinate> = Vec::new();
-    for (i,vent) in vents.iter().enumerate() {
-        for (j,svent) in active_vents.iter().enumerate() {
-            for (k,p1) in vent.points.iter().enumerate() {
-                for (l,p2) in svent.points.iter().enumerate() {
-                    if p1 == p2 && !overlaps.contains(p1) {
-                        overlaps.push(p1);
-                    }
-                }
-            }
+    let mut overlaps: Vec<Coordinate> = Vec::new();
+    let mut grid: Vec<Vec<i32>> = vec![vec![0;1000];1000];
+    for (index,vent) in vents.iter().enumerate() {
+        draw_line(&mut grid, vent);
+    }
+    let mut overlaps: i32 = 0;
+    for (i,col) in grid.iter().enumerate() {
+        for (j,point) in col.iter().enumerate() {
+            if *point > 1 {overlaps += 1}
         }
-        
+    }
+    println!("Diag: {:#?}", vents[1]);
+    println!("Overlaps: {}", overlaps);
+}
+
+fn draw_line(grid: &mut Vec<Vec<i32>>, vent: &Vent) {
+    for (_,point) in vent.points.iter().enumerate() {
+        grid[point.x as usize][point.y as usize] += 1;
     }
 }
 
@@ -65,7 +117,7 @@ fn process_input(file: &str) -> Vec<Vent> {
         if coords.len() != 2 {println!("Bad formatting on line {}", index); continue}
         let low = parse_coordinate(coords[0]).expect(format!("Failed to read low coordinate on line {}", index).as_str());
         let high = parse_coordinate(coords[1]).expect(format!("Failed to read high coordinate on line {}", index).as_str());
-        if !(low.x == high.x || low.y == high.y) {println!("Found diagonal on line {}", index); continue}
+        if !(low.x == high.x || low.y == high.y || (low.x-high.x).abs() == (low.y-high.y).abs()) {println!("Found invalid diagonal on line {}", index); continue}
         vents.push(Vent::new(low, high));
     }
 
