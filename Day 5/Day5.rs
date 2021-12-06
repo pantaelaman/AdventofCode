@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::io::{self, BufRead, BufReader};
 
-#[derive (Copy, Clone, Debug)]
+#[derive (Copy, Clone, Debug, Eq)]
 struct Coordinate {
     x: i32,
     y: i32,
@@ -25,8 +25,8 @@ impl Vent {
         let mut points: Vec<Coordinate> = Vec::new();
         let x_top: i32;
         let y_top: i32;
-        for x in 0..(high.x-low.y+1) {
-            for y in 0..(high.y-low.y+1) {
+        for x in 0..((high.x-low.y).abs()+1) {
+            for y in 0..((high.y-low.y).abs()+1) {
                 points.push(Coordinate::new(low.x+x, low.y+y));
             }
         }
@@ -42,8 +42,15 @@ fn main () {
     let overlaps: Vec<Coordinate> = Vec::new();
     for (i,vent) in vents.iter().enumerate() {
         for (j,svent) in active_vents.iter().enumerate() {
-            
+            for (k,p1) in vent.points.iter().enumerate() {
+                for (l,p2) in svent.points.iter().enumerate() {
+                    if p1 == p2 && !overlaps.contains(p1) {
+                        overlaps.push(p1);
+                    }
+                }
+            }
         }
+        
     }
 }
 
