@@ -27,20 +27,22 @@ fn process_input(file: &str) -> (Vec<(i32,i32)>, i32, i32) {
     return (controllers, min, max);
 }
 
-fn run_tests(controllers: Vec<(i32, i32)>, min: i32, max: i32) -> (i32, i32) {
-    let mut result: (i32, i32) = (-1, 2_i32.pow(20));
+fn run_tests(controllers: Vec<(i32, i32)>, min: i32, max: i32) -> (i64, i64) {
+    let mut result: (i64, i64) = (-1, 2_i64.pow(32));
+    println!("Total controllers: {}", controllers.len());
     for i in min..max {
-        let cost: i32 = calculate_cost(&controllers, i);
-        if cost < result.1 {result = (i, cost)}
+        let cost: i64 = calculate_cost(&controllers, i);
+        if cost < result.1 {result = (i as i64, cost)}
+        println!("Finished test {}", i);
     }
     return result;
 }
 
-fn calculate_cost(controllers: &Vec<(i32, i32)>, distance: i32) -> i32 {
-    let mut result: i32 = 0;
-    for controller in controllers {
+fn calculate_cost(controllers: &Vec<(i32, i32)>, distance: i32) -> i64 {
+    let mut result: i64 = 0;
+    for (index, controller) in controllers.iter().enumerate() {
         for i in 1..((controller.0 - distance).abs()+1) {
-            result += i * controller.1;
+            result += (i as i64) * (controller.1 as i64);
         }
     }
     return result;
