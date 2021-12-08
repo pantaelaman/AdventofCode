@@ -35,3 +35,7 @@ fn parse_output(raw: &str) -> i32 {
     }
     return value;
 }
+
+fn parse_input(raw: &str) -> i32 {
+    
+}
