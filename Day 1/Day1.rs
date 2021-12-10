@@ -13,9 +13,18 @@ fn process_input(file: &str) -> i64 {
     for (index,line) in reader.lines().enumerate() {
         let line = line.expect(format!("Could not read line {}", index).as_str());
         let value = line.parse::<i64>().expect(format!("Could not parse line {}", index).as_str());
-
-        fuel += (value / 3) - 2;
+        println!("-- New --");
+        let cost = calculate_fuel((value / 3) - 2);
+        println!("Cost: {}", cost);
+        fuel += cost;
     }
 
     return fuel;
+}
+
+fn calculate_fuel(fuel: i64) -> i64 {
+    println!("{}", fuel);
+    let add = (fuel / 3) - 2;
+    if add <= 0 {return fuel}
+    else {return fuel + calculate_fuel(add)}
 }
