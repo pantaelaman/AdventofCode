@@ -18,9 +18,16 @@ fn process_input(file: &str) {
         }
     }
 
-    let mut acc = 0;
-    for step in 0..100 { acc += run_step(&mut map); println!("Finished step {} with flashes {}", step+1, acc) }
-    println!("{}", acc);
+    let mut until = false;
+    let mut step = 0;
+    while !until {
+        step += 1;
+        if run_step(&mut map) == 100 {
+            until = true;
+        }
+        println!("Finished step {}", step);
+    }
+    println!("Final step: {}", step);
 }
 
 fn run_step(map: &mut [[(i8,bool); 10]; 10]) -> i32 {
