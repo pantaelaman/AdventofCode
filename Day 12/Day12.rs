@@ -3,7 +3,7 @@ use std::io::{BufRead,BufReader};
 use std::collections::{HashMap, HashSet};
 
 fn main() {
-    process_input("Day12Test0.txt");
+    process_input("Day12Input.txt");
 }
 
 fn process_input(file: &str) {
@@ -26,30 +26,18 @@ fn process_input(file: &str) {
         };
     }
 
-    optimize(&mut caves);
-
-    println!("{:?}", caves);
+    println!("{}", dfs(&caves, &"start".to_string(), HashSet::new()));
 }
 
-fn optimize(graph: &mut HashMap<String, HashSet<String>>) {
-    let mut remove: HashSet<String> = HashSet::new();
-    for (key,value) in graph.clone().iter() {
-        if *key == "start".to_string() || *key == "end".to_string() || *key == key.to_ascii_uppercase() {continue}
-        if value.iter().all(|el| *el == el.to_ascii_lowercase()) {
-            println!("Removing {}", key);
-            remove.insert(key.clone());
-        }
+fn dfs(graph: &HashMap<String, HashSet<String>>, node: &String, mut visited: HashSet<String>) -> i32 {
+    if *node == "end".to_string() {return 1;}
+    if visited.contains(node) {
+        return 0;
     }
-    for value in graph.values_mut() {
-        for r in remove.iter() {
-            if value.contains(r) {value.remove(r);}
-        }
+    if *node == node.to_ascii_lowercase() {visited.insert(node.clone());}
+    let mut acc = 0;
+    for n in graph.get(node).unwrap() {
+        acc += dfs(graph, n, visited.clone());
     }
-    for r in remove.drain() {
-        graph.remove(&r);
-    }
-}
-
-fn dfs(graph: HashMap<String, HashSet<String>>, node: String, visited: HashSet<String>) {
-    
+    return acc;
 }
