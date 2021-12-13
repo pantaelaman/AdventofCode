@@ -26,18 +26,22 @@ fn process_input(file: &str) {
         };
     }
 
-    println!("{}", dfs(&caves, &"start".to_string(), HashSet::new()));
+    println!("{}", dfs(&caves, &"start".to_string(), HashSet::new(), false));
 }
 
-fn dfs(graph: &HashMap<String, HashSet<String>>, node: &String, mut visited: HashSet<String>) -> i32 {
+fn dfs(graph: &HashMap<String, HashSet<String>>, node: &String, mut visited: HashSet<String>, mut twiced: bool) -> i32 {
     if *node == "end".to_string() {return 1;}
     if visited.contains(node) {
-        return 0;
+        if twiced || *node == "start".to_string() {
+            return 0;
+        } else {
+            twiced = true;
+        }
     }
     if *node == node.to_ascii_lowercase() {visited.insert(node.clone());}
     let mut acc = 0;
     for n in graph.get(node).unwrap() {
-        acc += dfs(graph, n, visited.clone());
+        acc += dfs(graph, n, visited.clone(), twiced);
     }
     return acc;
 }
