@@ -11,7 +11,8 @@ fn process_input(file: &str) {
     let mut switches: HashMap<String, String> = HashMap::new();
     let mut lines = BufReader::new(file).lines();
     
-    let mut initial = lines.next().unwrap().expect("Could not read line 0");
+    let raw = lines.next().unwrap().expect("Could not read line 0");
+    let mut polymer = build_polymer(&raw);
     lines.next();
     for (index,line) in lines.enumerate() {
         let line = line.expect(format!("Could not read line {}", index).as_str());
@@ -19,46 +20,60 @@ fn process_input(file: &str) {
         switches.insert(parts[0].to_string(),parts[1].to_string());
     }
 
-
-    for _ in 0..10 {
-        run_step(&mut initial, &switches);
+    let mut counter: HashMap<char,i64> = HashMap::new();
+    count_initial(&raw, &mut counter);
+    for _ in 0..40 {
+        run_step(&mut polymer, &switches, &mut counter);
     }
-    println!("{}", score_polymer(&initial));
+
+    println!("{}", score_polymer(&counter));
 }
 
-fn run_step(initial: &mut String, switches: &HashMap<String, String>) {
-    let chars: Vec<char> = initial.chars().collect();
-    let mut new: Vec<char> = vec![chars[0]];
+fn count_initial(raw: &String, counter: &mut HashMap<char,i64>) {
+    for chr in raw.chars() {
+        *counter.entry(chr).or_insert(0) += 1;
+    }
+}
+
+fn build_polymer(raw: &String) -> HashMap<String,i64> {
+    let chars: Vec<char> = raw.chars().collect();
+    let mut result: HashMap<String,i64> = HashMap::new();
     for l in 1..(chars.len()) {
-        let pair = vec![chars[l-1], chars[l]].into_iter().collect::<String>();
-        match switches.get(&pair) {
-            Some(val) => {
-                new.push(val.chars().nth(0).unwrap());
-                new.push(chars[l]);
+        let pair = vec![chars[l-1],chars[l]].into_iter().collect::<String>();
+        let counter = result.entry(pair).or_insert(0);
+        *counter += 1;
+    }
+    return result;
+}
+
+fn run_step(polymer: &mut HashMap<String,i64>, switches: &HashMap<String, String>, counter: &mut HashMap<char,i64>) {
+    let mut new = HashMap::new();
+    for (key,value) in polymer.iter() {
+        match switches.get(key) {
+            Some(ltr) => {
+                let c1 = new.entry(format!("{}{}", key.clone().chars().nth(0).unwrap(), ltr)).or_insert(0);
+                *c1 += *value;
+                let c2 = new.entry(format!("{}{}", ltr, key.clone().chars().last().unwrap())).or_insert(0);
+                *c2 += *value;
+                let m = counter.entry(ltr.chars().nth(0).unwrap()).or_insert(0);
+                *m += *value;
             },
-            None => {
-                new.push(chars[l]);
-            },
+            None => (),
         }
     }
-    *initial = new.into_iter().collect();
+    *polymer = new;
 }
 
-fn score_polymer(polymer: &String) -> i32 {
-    let chars: Vec<char> = polymer.chars().collect();
-    let mut values: HashMap<char,i32> = HashMap::new();
-    for chr in chars {
-        let i = values.entry(chr).or_insert(1);
-        *i += 1;
+fn score_polymer(counter: &HashMap<char,i64>) -> i64 {
+    let mut max: (char,i64) = ('?',0);
+    let mut min: (char,i64) = ('?',i64::MAX);
+    for (key,value) in counter {
+        if *value > max.1 {
+            max = (key.clone(),*value);
+        }
+        if *value < min.1 {
+            min = (key.clone(),*value);
+        }
     }
-
-    let mut max: (char,i32) = ('?', 0);
-    let mut min: (char,i32) = ('?', i32::MAX);
-    for (key,value) in values {
-        if value > max.1 {max = (key.clone(), value)}
-        if value < min.1 {min = (key.clone(), value)}
-    }
-
-    println!("{:?},{:?}", max,min);
     return max.1 - min.1;
 }
