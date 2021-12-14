@@ -9,7 +9,6 @@ fn main() {
 fn process_input(file: &str) {
     let file = File::open(file).expect("Bad path");
     let mut points: HashSet<(i32,i32)> = HashSet::new();
-    let mut first = false;
     let reader = BufReader::new(file);
 
     for (index,line) in reader.lines().enumerate() {
@@ -30,12 +29,11 @@ fn process_input(file: &str) {
                 _ => panic!("Something went wrong"),
             }
             let at: i32 = data[2..].parse().expect(format!("Bad format in fold-at on line {}", index).as_str());
-            if !first {fold(&mut points, at, vertical); first = true;}
+            fold(&mut points, at, vertical);
         }
     }
 
-    println!("{:?}", points);
-    println!("{}", points.iter().count());
+    display_points(&points);
 }
 
 fn fold(points: &mut HashSet<(i32,i32)>, at: i32, vertical: bool) {
@@ -53,5 +51,37 @@ fn fold(points: &mut HashSet<(i32,i32)>, at: i32, vertical: bool) {
                 points.remove(point);
             }
         }
+    }
+}
+
+fn display_points(points: &HashSet<(i32,i32)>) {
+    let fill = '█';
+    let empty = ' ';
+    let max = points.iter().fold((0,0), |mut acc,el| {
+        if el.0 > acc.0 {acc.0 = el.0}
+        if el.1 > acc.1 {acc.1 = el.1}
+        acc
+    });
+    let min = points.iter().fold((i32::MAX,i32::MAX), |mut acc,el| {
+        if el.0 < acc.0 {acc.0 = el.0}
+        if el.1 < acc.1 {acc.1 = el.1}
+        acc
+    });
+    println!("Max: {:?}, Min: {:?}", max, min);
+    let mut rows: Vec<Vec<char>> = Vec::new();
+    for i in (min.1)..(max.1 + 1) {
+        let mut col: Vec<char> = Vec::new();
+        for j in (min.0)..(max.0 + 1) {
+            if points.contains(&(j,i)) {
+                col.push(fill);
+            } else {
+                col.push(empty);
+            }
+        }
+        rows.push(col);
+    }
+    let print_rows: Vec<String> = rows.iter().map(|el| el.iter().collect::<String>()).collect();
+    for row in print_rows {
+        println!("{}", row);
     }
 }
