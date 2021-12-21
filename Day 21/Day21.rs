@@ -37,6 +37,46 @@ impl DDie {
 }
 
 struct QDie {
+    position: i32,
+}
+
+impl QDie {
+    fn new(position: i32) -> QDie {
+        QDie{position}
+    }
+
+    fn play(&self, p1: &mut Player, p2: &mut Player, data: &mut QData) -> (i128,i128) {
+        data.count += 1;
+        data.accumulator += self.position;
+        if data.count == 2 {
+            let cur_acc = data.accumulator;
+            data.accumulator = 0;
+            data.count = 0;
+            if data.turn == 0 {
+                data.turn = 1;
+                if p1.play(cur_acc + 3) {return (1,0)}
+            } else {
+                data.turn = 0;
+                if p2.play(cur_acc + 3) {return (0,1)}
+            }
+        }
+        let strand0 = QDie::new(0).play(p1,p2,data);
+        let strand1 = QDie::new(1).play(p1,p2,data);
+        let strand2 = QDie::new(2).play(p1,p2,data);
+        return (strand0.0 + strand1.0 + strand2.0, strand0.1 + strand1.1 + strand2.1);
+    }
+}
+
+struct QData {
+    accumulator: i32,
+    count: i32,
+    turn: i32,
+}
+
+impl QData {
+    fn new() -> QData {
+        QData{accumulator: 0, count: -1, turn: 0}
+    }
 }
 
 fn main() {
@@ -53,27 +93,9 @@ fn process_input(file: &str) {
     let mut player1 = Player::new(lines[0].chars().skip(28).collect::<String>().parse().expect("Could not read starting position of player 1"));
     let mut player2 = Player::new(lines[1].chars().skip(28).collect::<String>().parse().expect("Could not read starting position of player 2"));
 
-    let mut gamestate: (bool, i8) = (false, -1); // 0 => Player1, 1 => Player2
-    let mut die = DDie::new();
-    let mut turnnumber = 0;
-    loop {
-        let turn = die.roll() + die.roll() + die.roll();
-        gamestate = (player1.play(turn), 0);
-        turnnumber += 1;
-        if gamestate.0 {break}
-        // println!("TURN {}; P1 :: Die: {}, Position: {}, Increase: {}, Score: {}", turnnumber, die.position, player1.position, turn, player1.score);
-        let turn = die.roll() + die.roll() + die.roll();
-        gamestate = (player2.play(turn), 1);
-        turnnumber += 1;
-        if gamestate.0 {break}
-        // println!("TURN {}; P2 :: Die: {}, Position: {}, Increase: {}, Score: {}", turnnumber, die.position, player2.position, turn, player2.score);
-    }
-    
-    if gamestate.1 == 0 {
-        println!("Player 1 wins; result: {} * {} = {}", player2.score, die.count, player2.score * die.count);
-    } else if gamestate.1 == 1 {
-        println!("Player 2 wins; result: {} * {} = {}", player1.score, die.count, player1.score * die.count);
-    } else {
-        println!("Something went wrong.");
-    }
+    let die0 = QDie::new(0).play(&mut player1, &mut player2, &mut QData::new());
+    let die1 = QDie::new(1).play(&mut player1, &mut player2, &mut QData::new());
+    let die2 = QDie::new(2).play(&mut player1, &mut player2, &mut QData::new());
+
+    println!("Results: {:#?}", (die0.0 + die1.0 + die2.0, die0.1 + die1.1 + die2.1));
 }
