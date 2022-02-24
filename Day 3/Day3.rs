@@ -12,11 +12,16 @@ fn process_input(file: &str) -> usize {
     let reader = BufReader::new(file);
     let input = reader.lines().next().expect("Empty file").expect("Could not read line 1");
     let mut houses: HashSet<(isize,isize)> = HashSet::new();
-    let mut position: (isize,isize) = (0,0);
+    let mut rposition: (isize,isize) = (0,0);
+    let mut fposition: (isize,isize) = (0,0);
+    let mut real_santa = true;
 
-    houses.insert(position);
+    houses.insert(rposition);
 
     for chr in input.chars() {
+        let position = {
+            if real_santa {&mut rposition} else {&mut fposition}
+        };
         match chr {
             '^' => position.1+=1,
             'v' => position.1-=1,
@@ -24,7 +29,8 @@ fn process_input(file: &str) -> usize {
             '>' => position.0+=1,
             _ => panic!("Unexpected character"),
         }
-        houses.insert(position);
+        real_santa = !real_santa;
+        houses.insert(*position);
     }
 
     houses.iter().count()
