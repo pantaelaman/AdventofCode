@@ -1,9 +1,11 @@
 [package]
-name = "Day4"
+name = "day4"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-md5 = "*"
+md5 = "0.7.0"
+dialoguer = "0.10.2"
+indicatif = "0.17.0"
