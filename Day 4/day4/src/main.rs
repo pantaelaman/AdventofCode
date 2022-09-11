@@ -16,7 +16,7 @@ fn run_tests(input: String, spinner: &ProgressBar) -> u64 {
     let mut num: u64 = 0;
     let mut hash: String = get_md5_sring(&input, num);
     spinner.set_message(num.to_string());
-    while &hash[0..5] != "00000" {
+    while &hash[0..5] != "000000" {
         spinner.inc(1);
         num += 1;
         hash = get_md5_sring(&input, num);
