@@ -1,0 +1,26 @@
+cabal-version:      3.0
+name:               day6
+version:            0.1.0.0
+-- synopsis:
+-- description:
+license:            CC-BY-NC-SA-4.0
+license-file:       LICENSE
+author:             pantaelaman
+maintainer:         calvin@theophoffs.com
+-- copyright:
+category:           Data
+build-type:         Simple
+extra-doc-files:    CHANGELOG.md
+-- extra-source-files:
+
+common warnings
+    ghc-options: -Wall
+
+executable day6
+    import:           warnings
+    main-is:          Main.hs
+    -- other-modules:
+    -- other-extensions:
+    build-depends:    base ^>=4.17.0.0, parsec
+    hs-source-dirs:   app
+    default-language: GHC2021
