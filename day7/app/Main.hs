@@ -24,30 +24,21 @@ main = do
   file <- (readFile . head) =<< getArgs
   let p1 = parse (parseInput charToCardP1) "" file
   let p2 = parse (parseInput charToCardP2) "" file
-  print =<< (solve evaluateHandP1 $ fromRight [] p1)
-  print =<< (solve evaluateHandP2 $ fromRight [] p2)
+  print $ solve evaluateHandP1 $ fromRight [] p1
+  print $ solve evaluateHandP2 $ fromRight [] p2
   return ()
 
-solve :: (Hand -> IO HandValue) -> [(Hand, Bet)] -> IO Int
+solve :: (Hand -> HandValue) -> [(Hand, Bet)] -> Int
 solve eh hbs = do
-  collapsed <- sequence $ map (collapseTuple . first (\h -> collapseTuple (eh h, h))) hbs
-  let valued = groupBy valueGroup $ sortBy valueSort $ collapsed
-  -- print valued
-  -- let sorted = concat $ map (sortBy handSort . map (first snd)) $ valued
-  let sorted = concat $ map (sortBy handSort) $ valued
-  -- putStrLn $ intercalate "\n" $ show <$> zip [1..] sorted
-  return $ foldl totalBets 0 $ zip [1..] $ map snd $ sorted 
+  foldl totalBets 0 $ zip [1..] $ map snd $ concat
+    $ map (sortBy handSort) $ groupBy valueGroup $ sortBy valueSort
+    $ map (first (\h -> (eh h, h))) hbs
   where valueSort :: ((HandValue, Hand), Bet) -> ((HandValue, Hand), Bet) -> Ordering
         valueSort ((v1, _), _) ((v2, _), _) = compare v1 v2 
-        -- valueSort = curry (uncurry compare . bimap (fst . fst) (fst . fst))
         valueGroup :: ((HandValue, Hand), Bet) -> ((HandValue, Hand), Bet) -> Bool
         valueGroup ((v1, _), _) ((v2, _), _) = (==) v1 v2
-        -- valueGroup = curry (uncurry (==) . bimap (fst . fst) (fst . fst))
-        -- handSort :: (Hand, Bet) -> (Hand, Bet) -> Ordering
-        -- handSort (h1, _) (h2, _) = compare h1 h2
         handSort :: ((HandValue, Hand), Bet) -> ((HandValue, Hand), Bet) -> Ordering
         handSort ((_, h1), _) ((_, h2), _) = compare h1 h2
-        -- handSort = curry (uncurry compare . bimap fst fst)
         totalBets :: Int -> (Int, Bet) -> Int
         totalBets acc (n, b) = acc + (n*b)
 
@@ -80,30 +71,30 @@ charToCardP2 c
   | c == 'T' = 10
   | otherwise = (ord c) - 0x30
 
-evaluateHandP1 :: Hand -> IO HandValue
+evaluateHandP1 :: Hand -> HandValue
 evaluateHandP1 hand
-  | num_uniques == 1 = return $ Five
-  | num_uniques == 2 = return $ bool Full Four $ isJust $ find (\(_,c) -> c == 1) grouped 
-  | num_uniques == 3 = return $ bool TPair Three $ isJust $ find (\(_,c) -> c == 3) grouped
-  | num_uniques == 4 = return $ Pair
-  | otherwise = return High
+  | num_uniques == 1 = Five
+  | num_uniques == 2 = bool Full Four $ isJust $ find (\(_,c) -> c == 1) grouped 
+  | num_uniques == 3 = bool TPair Three $ isJust $ find (\(_,c) -> c == 3) grouped
+  | num_uniques == 4 = Pair
+  | otherwise = High
   where grouped :: [(Card, Int)] = map (\x -> (head x, length x)) $ group $ sort hand
         num_uniques :: Int = length grouped
 
-evaluateHandP2 :: Hand -> IO HandValue
+evaluateHandP2 :: Hand -> HandValue
 evaluateHandP2 hand = do
-  grpd <- grouped
+  let grpd = grouped
   let nu = length grpd
-  if nu == 1 then return $ Five
-  else if nu == 2 then return $ bool Full Four $ isJust $ find (\(_,c) -> c == 1) $ grpd 
-  else if nu == 3 then return $ bool TPair Three $ isJust $ find (\(_,c) -> c == 3) $ grpd
-  else if nu == 4 then return $ Pair
-  else return High
-  where grouped :: IO [(Card, Int)]
+  if nu == 1 then Five
+  else if nu == 2 then bool Full Four $ isJust $ find (\(_,c) -> c == 1) $ grpd 
+  else if nu == 3 then bool TPair Three $ isJust $ find (\(_,c) -> c == 3) $ grpd
+  else if nu == 4 then Pair
+  else High
+  where grouped :: [(Card, Int)]
         grouped = do
           let groups = sortBy (\(_, c1) (_, c2) -> compare c1 c2) $ map (\x -> (head x, length x)) $ group $ sort hand
           let jokers = fromMaybe 0 (snd <$> find ((==1) . fst) groups)
-          return $ maybe [(1, 5)] (uncurry snoc . second (second (+jokers))) $ unsnoc $ filter ((/=1) . fst) groups
+          maybe [(1, 5)] (uncurry snoc . second (second (+jokers))) $ unsnoc $ filter ((/=1) . fst) groups
 
 showHand :: Hand -> [Char]
 showHand hand = numToChar <$> hand
