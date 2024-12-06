@@ -1,0 +1,9 @@
+[package]
+name = "day12"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+gcd = "2.3.0"
+itertools = "0.13.0"
+regex = "1.11.1"
