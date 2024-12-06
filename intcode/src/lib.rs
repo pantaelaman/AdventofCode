@@ -138,6 +138,54 @@ impl<IO: IOPipeline> IOPipeline for &mut IO {
   }
 }
 
+pub struct StatefulContext<'a, S> {
+  pub state: S,
+  in_fn: Box<dyn Fn(&mut S) -> Value + 'a>,
+  out_fn: Box<dyn Fn(&mut S, Value) + 'a>,
+}
+
+impl<'a, S> StatefulContext<'a, S> {
+  pub fn new<IF: Fn(&mut S) -> Value + 'a, OF: Fn(&mut S, Value) + 'a>(
+    state: S,
+    input: IF,
+    output: OF,
+  ) -> Self
+  where
+    S: 'a,
+  {
+    let in_fn = Box::new(input) as Box<dyn Fn(&mut S) -> Value>;
+    let out_fn = Box::new(output) as Box<dyn Fn(&mut S, Value)>;
+
+    StatefulContext {
+      state,
+      in_fn,
+      out_fn,
+    }
+  }
+}
+
+impl<S> Input for StatefulContext<'_, S> {
+  fn read(&mut self) -> Value {
+    (self.in_fn)(&mut self.state)
+  }
+}
+
+impl<S> Output for StatefulContext<'_, S> {
+  fn write(&mut self, output: Value) {
+    (self.out_fn)(&mut self.state, output)
+  }
+}
+
+impl<S> IOPipeline for StatefulContext<'_, S> {
+  fn input(&mut self) -> &mut dyn Input {
+    self
+  }
+
+  fn output(&mut self) -> &mut dyn Output {
+    self
+  }
+}
+
 pub struct OwnedContext<I: Input, O: Output> {
   pub input: I,
   pub output: O,
@@ -562,6 +610,16 @@ impl<C: IOPipeline> Program<C> {
     }
   }
 
+  pub fn with_new_context<C2: IOPipeline>(self, context: C2) -> Program<C2> {
+    Program {
+      program: self.program,
+      context,
+      isp: self.isp,
+      rsp: self.rsp,
+      completed: self.completed,
+    }
+  }
+
   pub fn is_complete(&self) -> bool {
     self.completed
   }
@@ -570,6 +628,16 @@ impl<C: IOPipeline> Program<C> {
     while !self.completed {
       self.run_until_interrupt();
     }
+  }
+
+  pub fn run_for(&mut self, iterations: usize) -> bool {
+    for _ in 0..iterations {
+      if self.is_complete() {
+        return false;
+      }
+      self.run_until_interrupt();
+    }
+    true
   }
 
   pub fn run_until_interrupt(&mut self) {
