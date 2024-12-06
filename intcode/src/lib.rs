@@ -57,6 +57,24 @@ impl Input for VecDeque<Value> {
   }
 }
 
+impl Input for dyn FnMut() -> Value {
+  fn read(&mut self) -> Value {
+    self()
+  }
+}
+
+impl Input for &mut dyn FnMut() -> Value {
+  fn read(&mut self) -> Value {
+    self()
+  }
+}
+
+impl<I: Input> Input for &mut I {
+  fn read(&mut self) -> Value {
+    (*self).read()
+  }
+}
+
 pub trait Output {
   fn write(&mut self, output: Value);
 }
