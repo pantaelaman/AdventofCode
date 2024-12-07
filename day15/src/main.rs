@@ -1,5 +1,4 @@
 use intcode::{file_to_values, OwnedContext, Program, SingletonValue, Value};
-use pathfinding::directed::bfs::bfs;
 use std::{
   collections::{HashMap, HashSet, VecDeque},
   fs::File,
@@ -21,14 +20,13 @@ fn main() {
   let mut oxygen = None;
   visited.insert((position, facing));
 
-  // walk to first wall
-  loop {
-    program.context.input.push_back(facing_to_dir(facing));
-    program.run_until_interrupt();
-    if *program.context.output == 0 {
-      break;
-    }
-  }
+  //loop {
+  //  program.context.input.push_back(facing_to_dir(facing));
+  //  program.run_until_interrupt();
+  //  if *program.context.output == 0 {
+  //    break;
+  //  }
+  //}
 
   loop {
     let mut new_facing = facing;
@@ -63,63 +61,43 @@ fn main() {
     },
   );
 
-  // let mut frontier = vec![(0, 0)];
-  // let mut steps = 0;
-  // let mut previous = HashMap::new();
-  // 'bfs: loop {
-  //   for (x, y) in std::mem::take(&mut frontier) {
-  //     if (x, y) == oxygen.unwrap() {
-  //       break 'bfs;
-  //     }
-  //     let successors = [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]
-  //       .into_iter()
-  //       .filter(|p| !walls.contains(p))
-  //       .filter_map(|p| {
-  //         (!previous.contains_key(&p)).then(|| {
-  //           previous.insert(p, (x, y));
-  //           p
-  //         })
-  //       });
-  //     frontier.extend(successors);
-  //   }
-  //   steps += 1;
-  // }
+  let oxygen = oxygen.unwrap();
 
-  // let mut path = HashSet::new();
-  // let mut next_prev = oxygen.unwrap();
-  // while let Some(prev_node) = previous.get(&next_prev) {
-  //   path.insert(next_prev);
-  //   next_prev = *prev_node;
-  // }
-
-  // println!("Part 1: {}", steps);
-
-  let path = bfs(
-    &(0, 0),
-    |(x, y): &Position| {
-      [(*x + 1, *y), (*x - 1, *y), (*x, *y + 1), (*x, *y - 1)]
+  let mut frontier = vec![(0, 0)];
+  let mut visited = HashSet::new();
+  let mut previous = HashMap::new();
+  'bfs: loop {
+    for (x, y) in std::mem::take(&mut frontier) {
+      if (x, y) == oxygen {
+        break 'bfs;
+      }
+      visited.insert((x, y));
+      let successors = [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]
         .into_iter()
-        .filter(|p| !walls.contains(p))
-    },
-    |p: &Position| p == oxygen.as_ref().unwrap(),
-  )
-  .unwrap()
-  .into_iter()
-  .collect::<HashSet<Position>>();
+        .filter(|p| !walls.contains(p) && !visited.contains(p));
+      for successor in successors {
+        previous.insert(successor, (x, y));
+        frontier.push(successor);
+      }
+    }
+  }
 
-  let mut count = 0;
+  let mut path = vec![oxygen];
+  while let Some(prev) = previous.get(path.last().unwrap()) {
+    path.push(*prev);
+  }
+
   for y in miny..=maxy {
     for x in minx..=maxx {
       print!(
         "{}",
         if (x, y) == (0, 0) {
           'O'
-        } else if oxygen.as_ref().map(|p| &(x, y) == p).unwrap_or_default() {
+        } else if (x, y) == oxygen {
           '%'
         } else if walls.contains(&(x, y)) {
           '\u{2588}'
         } else if path.contains(&(x, y)) {
-          count += 1;
           '#'
         } else {
           '.'
@@ -129,8 +107,23 @@ fn main() {
     println!();
   }
 
-  println!("{}", count);
   println!("Part 1: {}", path.len() - 1);
+
+  frontier = vec![oxygen];
+  visited.clear();
+  let mut depth = 0;
+  while !frontier.is_empty() {
+    for (x, y) in std::mem::take(&mut frontier) {
+      visited.insert((x, y));
+      let successors = [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]
+        .into_iter()
+        .filter(|p| !walls.contains(p) && !visited.contains(p));
+      frontier.extend(successors);
+    }
+    depth += 1;
+  }
+
+  println!("Part 2: {}", depth - 1);
 }
 
 fn update_to_target(
