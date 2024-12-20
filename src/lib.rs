@@ -168,9 +168,9 @@ impl<const BASE: usize> Sub for Mod<BASE> {
   }
 }
 
-pub fn grid_input<'a, I, O, N>(
+pub fn grid_input<'a, I, N>(
   input: I,
-) -> impl Iterator<Item = (Point<N>, char)> + use<'a, I, O, N>
+) -> impl Iterator<Item = (Point<N>, char)> + use<'a, I, N>
 where
   I: IntoIterator<Item = &'a str>,
   N: From<usize>,
