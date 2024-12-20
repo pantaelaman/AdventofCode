@@ -56,31 +56,6 @@ impl<N: AbsDiff<Output = N> + Add<Output = N>> Point<N> {
   }
 }
 
-impl<N: Hash + Eq> Point<N> {
-  /// Combinator for checking if a point is in a set. Mostly useful alongside
-  /// [`.orthogonal_neighbours()`](Self::orthogonal_neighbours):
-  /// ```
-  /// let walkable: HashSet<Point<i32>> = ...;
-  /// let point: Point<i32> = ...;
-  /// for neighbour in point.orthogonal_neighbours().filter(Point::in_set(&walkable)) {
-  ///   // do something referencing walkable neighbours, such as in BFS or A*
-  ///   ...
-  /// }
-  /// ```
-  pub fn in_set<'a>(
-    set: &'a HashSet<Point<N>>,
-  ) -> impl Fn(&Self) -> bool + use<'a, N> {
-    move |p| set.contains(p)
-  }
-
-  /// Inverse to [`.in_set()`](Self::in_set).
-  pub fn not_in_set<'a>(
-    set: &'a HashSet<Point<N>>,
-  ) -> impl Fn(&Self) -> bool + use<'a, N> {
-    move |p| !set.contains(p)
-  }
-}
-
 /// Implemented primarily for use with [`.contains()`](std::ops::Range::contains).
 /// Points whose x and y disagree in ordering form no particular order.
 impl<N: PartialOrd> PartialOrd for Point<N> {
