@@ -24,6 +24,10 @@ executable content
       , extra ^>= 1.8
       , containers ^>= 0.7
       , unordered-containers ^>= 0.2.20
+      , heap ^>= 1.0.4
       , split ^>= 0.2.5
+      , mtl ^>= 2.3.1
+      , transformers ^>= 0.6.1
+      , hashable ^>= 1.4.3
     hs-source-dirs:   app
     default-language: GHC2024
