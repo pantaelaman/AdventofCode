@@ -60,9 +60,9 @@ impl<N: Hash + Eq> Point<N> {
   /// Combinator for checking if a point is in a set. Mostly useful alongside
   /// [`.orthogonal_neighbours()`](Self::orthogonal_neighbours):
   /// ```
-  /// let walls: HashSet<Point<i32>> = ...;
+  /// let walkable: HashSet<Point<i32>> = ...;
   /// let point: Point<i32> = ...;
-  /// for neighbour in point.orthogonal_neighbours().filter(Point::in_set(&walls)) {
+  /// for neighbour in point.orthogonal_neighbours().filter(Point::in_set(&walkable)) {
   ///   // do something referencing walkable neighbours, such as in BFS or A*
   ///   ...
   /// }
@@ -71,6 +71,13 @@ impl<N: Hash + Eq> Point<N> {
     set: &'a HashSet<Point<N>>,
   ) -> impl Fn(&Self) -> bool + use<'a, N> {
     move |p| set.contains(p)
+  }
+
+  /// Inverse to [`.in_set()`](Self::in_set).
+  pub fn not_in_set<'a>(
+    set: &'a HashSet<Point<N>>,
+  ) -> impl Fn(&Self) -> bool + use<'a, N> {
+    move |p| !set.contains(p)
   }
 }
 
