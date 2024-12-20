@@ -1,0 +1,9 @@
+[package]
+name = "aocutil"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+itertools = "0.13.0"
+num-traits = { version = "0.2.19", default-features = false, features = ["i128", "std"] }
+pathfinding = "4.12.0"
