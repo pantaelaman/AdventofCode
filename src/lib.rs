@@ -82,7 +82,7 @@ impl<N: Step> Point<N> {
 
 impl<N> Point<N> {
   /// Shorthand for literal construction.
-  pub fn new(x: N, y: N) -> Self {
+  pub const fn new(x: N, y: N) -> Self {
     Point { x, y }
   }
 
