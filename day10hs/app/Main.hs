@@ -1,10 +1,9 @@
 module Main where
-
-import Data.List.Extra
 import Control.Monad.State
-import Control.Monad
+import Data.List.Extra
 import Data.Char
 import Data.Bits (xor)
+import Control.Monad
 import Text.Printf
 
 data Ring a = Ring {_ptr :: Int, _len :: Int, _contents :: [a]}
