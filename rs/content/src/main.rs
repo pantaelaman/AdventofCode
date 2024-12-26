@@ -1,13 +1,8 @@
-use std::{
-  fs::File,
-  io::{stdin, BufRead, BufReader},
-};
+use std::io::stdin;
 
 use itertools::Itertools;
 
 fn main() {
-  let reader = BufReader::new(stdin());
-
-  let lines = reader.lines().map(|line| line.unwrap()).collect_vec();
+  let lines = stdin().lines().map(|line| line.unwrap()).collect_vec();
   // let contents = lines.join("\n");
 }
