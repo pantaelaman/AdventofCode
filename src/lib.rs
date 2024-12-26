@@ -136,6 +136,15 @@ impl<N: Add<Output = N> + Sub<Output = N> + One + Copy> Point<N> {
     ]
     .into_iter()
   }
+
+  pub fn all_neighbours(self) -> impl Iterator<Item = Point<N>> {
+    self.orthogonal_neighbours().chain([
+      (self.x + N::one(), self.y + N::one()).into(),
+      (self.x - N::one(), self.y + N::one()).into(),
+      (self.x + N::one(), self.y - N::one()).into(),
+      (self.x - N::one(), self.y - N::one()).into(),
+    ])
+  }
 }
 
 impl<N: CheckedAdd<Output = N> + CheckedSub<Output = N> + One + Copy> Point<N> {
