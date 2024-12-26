@@ -1,0 +1,10 @@
+[package]
+name = "day18"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bimap = "0.6.3"
+itertools = "0.13.0"
+pariter = "0.5.1"
+pathfinding = "4.11.0"
