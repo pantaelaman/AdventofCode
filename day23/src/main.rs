@@ -80,5 +80,5 @@ fn main() {
   while let Some(instr) = instructions.get(isp) {
     isp = isp.checked_add_signed(instr.run(&mut regs)).unwrap();
   }
-  println!("Part 1: {}", regs[1]);
+  println!("Part 2: {}", regs[1]);
 }
