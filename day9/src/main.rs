@@ -29,7 +29,7 @@ impl SumBuffer {
 }
 
 fn main() {
-  let mut nums = stdin()
+  let nums = stdin()
     .lines()
     .map(|line| line.unwrap().parse::<usize>().unwrap())
     .collect_vec();
