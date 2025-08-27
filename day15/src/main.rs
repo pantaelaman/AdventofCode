@@ -1,7 +1,6 @@
 use std::{collections::HashMap, io::stdin};
 
 use itertools::Itertools;
-use spinoff::{spinners, Color};
 
 const TARGET: usize = 30000000;
 
