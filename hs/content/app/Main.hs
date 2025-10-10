@@ -1,7 +1,7 @@
 module Main where
-import System.Environment
+import System.IO
 
 main :: IO ()
 main = do
-  inp <- readFile . flip (!!) 0 =<< getArgs
-  print ""
+  inp <- getContents
+  return ()
