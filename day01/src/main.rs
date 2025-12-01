@@ -1,17 +1,10 @@
-use std::{
-  cmp::{max, min},
-  io::stdin,
-};
+use std::{cmp::min, io::stdin};
 
-use itertools::{iterate, Itertools};
+use itertools::Itertools;
 
 struct Instruction {
   direction: i32,
   count: i32,
-}
-
-fn pos_mod(n: i32, m: i32) -> i32 {
-  (n % m + m) % m
 }
 
 fn main() {
@@ -36,7 +29,6 @@ fn main() {
   let password = instrs
     .iter()
     .scan(50, |i, instr| {
-      println!("{i}");
       *i += instr.direction * instr.count;
       *i %= 100;
       Some(*i)
@@ -55,17 +47,6 @@ fn main() {
       let added_clicks =
         (i0 == 0) as i32 - (i == 0) as i32 + (instr.count - short_count) / 100;
       let raw_i = i0 + (instr.count - short_count) * instr.direction;
-
-      println!(
-        "{} + {} -> {} + {} => {} ({} : {})",
-        i,
-        short_count * instr.direction,
-        i0,
-        (instr.count - short_count) * instr.direction,
-        raw_i.rem_euclid(100),
-        added_clicks,
-        clicks + added_clicks
-      );
 
       (raw_i.rem_euclid(100), clicks + added_clicks)
     })
