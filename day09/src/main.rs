@@ -6,6 +6,12 @@ fn area((ax, ay): (i64, i64), (bx, by): (i64, i64)) -> u64 {
   (ax.abs_diff(bx) + 1) * (ay.abs_diff(by) + 1)
 }
 
+struct Segment {
+  bound: i64,   // vertical/horizontal slice in which this segment lies
+  winding: i64, // winding index (the direction of the range, opposite winding indices close each other)
+  range: RangeInclusive<i64>, // range this segment covers
+}
+
 fn main() {
   let lines = stdin().lines().map(|line| line.unwrap()).collect_vec();
   // let contents = lines.join("\n");
@@ -36,24 +42,25 @@ fn main() {
     (Vec::new(), Vec::new()),
     |(mut cols, mut rows), (l, r)| {
       if l.0 == r.0 {
-        cols.push((l.0, (r.1 - l.1).signum(), l.1.min(r.1)..=l.1.max(r.1)));
+        cols.push(Segment {
+          bound: l.0,
+          winding: (r.1 - l.1).signum(),
+          range: l.1.min(r.1)..=l.1.max(r.1),
+        });
       } else {
-        rows.push((l.1, (r.0 - l.0).signum(), l.0.min(r.0)..=l.0.max(r.0)));
+        rows.push(Segment {
+          bound: l.1,
+          winding: (r.0 - l.0).signum(),
+          range: l.0.min(r.0)..=l.0.max(r.0),
+        });
       }
 
       (cols, rows)
     },
   );
 
-  cols.sort_unstable_by_key(|(x, _, _)| *x);
-  rows.sort_unstable_by_key(|(y, _, _)| *y);
-
-  if cols[0].1 < 0 {
-    cols.iter_mut().for_each(|(_, ref mut d, _)| *d = -*d);
-  }
-  if rows[0].1 < 0 {
-    rows.iter_mut().for_each(|(_, ref mut d, _)| *d = -*d);
-  }
+  cols.sort_unstable_by_key(|segment| segment.bound);
+  rows.sort_unstable_by_key(|segment| segment.bound);
 
   for ((l, r), a) in rects_by_size {
     let (top, bottom) = (l.1.min(r.1), l.1.max(r.1));
@@ -76,20 +83,22 @@ fn contained<'a>(
   range_guard: i64,
   first: i64,
   last: i64,
-  bars: impl Iterator<Item = &'a (i64, i64, RangeInclusive<i64>)>,
+  bars: impl Iterator<Item = &'a Segment>,
 ) -> bool {
   bars
-    .filter(|(_, _, range)| range.contains(&range_guard))
+    .filter(|segment| segment.range.contains(&range_guard))
     .batching(|it| {
       let first = it.next()?;
 
       while let Some(next) = it.next() {
-        if next.1 != first.1 {
+        // seek the first segment which will close this one
+        // this is the maximal segment along `range_guard` still enclosed in the shape
+        if next.winding != first.winding {
           return Some((first, next));
         }
       }
 
       None
     })
-    .any(|((f, _, _), (l, _, _))| *f <= first && *l >= last)
+    .any(|(f, l)| f.bound <= first && l.bound >= last)
 }
